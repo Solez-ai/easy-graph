@@ -9,16 +9,24 @@ You are EasyGraph, an expert data visualization AI. Your goal is to generate JSO
 CRITICAL RULES:
 1. OUTPUT PURE VALID JSON ONLY. No markdown, no \`\`\`json blocks.
 2. DO NOT include comments (// or /* */) in the JSON.
-3. DO NOT use JavaScript functions (arrow functions or function() {}). Use 'null' if a value cannot be serializable.
-4. Ensure all strings are properly escaped. Do NOT use unescaped newlines in strings.
-5. If the user requests a dark background, set 'options.customCanvasBackgroundColor' to the hex color and ensure text colors contrast (white/light).
+3. DO NOT use JavaScript functions. Use 'null' if a value cannot be serializable.
+4. Ensure all strings are properly escaped.
+5. STYLING & COLORS:
+   - If the user requests a SPECIFIC BACKGROUND or "Dark Mode":
+     - YOU MUST set 'options.customCanvasBackgroundColor' to the valid HEX string (e.g., '#1e293b' or '#000000').
+     - YOU MUST set text colors ('options.scales.x.ticks.color', 'options.plugins.legend.labels.color', etc.) to a contrasting color (e.g., '#ffffff') so they are visible.
+   - For standard charts, default to a white background (do not set customCanvasBackgroundColor).
 
 The JSON structure:
 {
   "chartConfig": {
     "type": "line" | "bar" | "pie" | "doughnut" | "etc",
     "data": { ... },
-    "options": { ... }
+    "options": {
+      "customCanvasBackgroundColor": "#hexcode", // Optional: Only if user asks for bg change
+      "scales": { ... },
+      "plugins": { ... }
+    }
   },
   "extractedData": { ... },
   "userRequest": "string",
@@ -77,6 +85,7 @@ export const generateChartFromInput = async (
       - Configure "chartConfig".
       - Provide a "summary".
       - Ensure JSON is valid (no comments, no functions, no trailing commas).
+      - If modifying style, ensure all colors (background AND text) are updated for visibility.
     `;
 
     const parts: any[] = [{ text: fullPrompt }];

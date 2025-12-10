@@ -35,14 +35,24 @@ ChartJS.register(
 // Plugin to draw white (or custom) background on canvas export
 const backgroundPlugin = {
   id: 'customCanvasBackgroundColor',
-  beforeDraw: (chart: any) => {
+  beforeDraw: (chart: any, args: any, options: any) => {
     const { ctx, width, height } = chart;
     ctx.save();
     ctx.globalCompositeOperation = 'destination-over';
-    // Use the custom color from options, or default to white
-    // Ensure it's a string to avoid canvas errors, though browsers handle invalid fillStyle gracefully usually
-    const bgColor = chart.config.options.customCanvasBackgroundColor;
-    ctx.fillStyle = (typeof bgColor === 'string' ? bgColor : null) || '#ffffff';
+    
+    // Resolve background color:
+    // 1. Check direct plugin options (if passed as string via chartOptions)
+    // 2. Check root options (where Gemini puts it)
+    // 3. Default to white
+    
+    let bgColor = typeof options === 'string' ? options : null;
+    
+    if (!bgColor && chart.config.options?.customCanvasBackgroundColor) {
+        bgColor = chart.config.options.customCanvasBackgroundColor;
+    }
+
+    // Ensure we have a valid string, else white
+    ctx.fillStyle = (typeof bgColor === 'string' ? bgColor : '#ffffff');
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
   }
@@ -77,7 +87,7 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ config, isDarkMode }) => 
             ...baseOptions,
             plugins: {
                 ...baseOptions.plugins,
-                // Ensure the background plugin can read the color
+                // Ensure the background plugin receives the color string as its option
                 customCanvasBackgroundColor: customBg
             }
         };
@@ -89,6 +99,8 @@ const ChartRenderer: React.FC<ChartRendererProps> = ({ config, isDarkMode }) => 
       ...baseOptions,
       plugins: {
         ...baseOptions.plugins,
+        // Still register the plugin so white bg is drawn on export
+        customCanvasBackgroundColor: '#ffffff',
         legend: {
             ...baseOptions.plugins?.legend,
             labels: {
